@@ -2,9 +2,9 @@ use crate::token_type::TokenType;
 
 #[derive(Debug)]
 pub struct Token {
-    type_: TokenType,
-    lexeme: String,
-    span: Span,
+    pub type_: TokenType,
+    pub lexeme: String,
+    pub span: Span,
 }
 
 impl Token {
@@ -24,7 +24,7 @@ impl std::fmt::Display for Token {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Span {
     offset: usize,
     length: usize,

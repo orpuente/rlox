@@ -1,3 +1,5 @@
+use crate::LoxNumber;
+
 #[derive(Debug, Clone)]
 pub enum TokenType {
     // Single-character tokens
@@ -22,7 +24,7 @@ pub enum TokenType {
     // Literals
     Identifier(String),
     String(String),
-    Number(f32),
+    Number(LoxNumber),
 
     // Keywords,
     And, Class, Else, False, Fn, For, If, Let, Nil,

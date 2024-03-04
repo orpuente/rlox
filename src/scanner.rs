@@ -1,4 +1,4 @@
-use crate::{token::{Span, Token}, token_type::TokenType};
+use crate::{token::{Span, Token}, token_type::TokenType, LoxNumber};
 use std::collections::HashMap;
 use once_cell::sync::Lazy;
 
@@ -109,9 +109,9 @@ impl Scanner {
 
         let value = self.source.as_str()[self.start_of_lexeme .. self.current].to_string();
 
-        // SAFETY: If we got here is because the lexeme is of the 
-        // form [0-9]*(.[0-9]*) which is a valid f32 representation.
-        let value: f32 = value.parse().unwrap();
+        // SAFETY: If we got here is because the lexeme is of the form
+        // [0-9]*(.[0-9]*) which is a valid floating number representation.
+        let value: LoxNumber = value.parse().unwrap();
 
         self.add_token(TokenType::Number(value));
     }
