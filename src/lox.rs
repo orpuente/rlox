@@ -2,7 +2,7 @@ use std::{fs, io::{self, BufRead, Write}, process::exit};
 
 use console::{style, Term};
 
-use crate::scanner::Scanner;
+use crate::{parser, scanner::Scanner};
 
 #[derive(Default)]
 pub struct Lox {
@@ -24,7 +24,7 @@ impl Lox {
 
     fn run_file(&mut self, path: &str) {
         let contents = fs::read_to_string(path).unwrap();
-        self.run(&contents);
+        self.run(&contents).unwrap();
         if self.had_error { exit(64) }
     }
     
@@ -36,7 +36,7 @@ impl Lox {
             match line {
                 Ok(ref cmd) if cmd == "clear" => self.clear(),
                 Ok(ref source) => {
-                    self.run(source);
+                    let _ = self.run(source);
                     self.had_error = false;
                 }
                 _ => break,
@@ -61,19 +61,21 @@ impl Lox {
         term.set_title(title)
     }
     
-    fn run(&mut self, source: &str) {
+    fn run(&mut self, source: &str) -> Result<(), RuntimeError> {
         let mut scanner = Scanner::new(source);
         
         match scanner.scan_tokens() {
             Ok(tokens) => {
-                for token in tokens {
-                    println!("{token}");
-                }
+                let mut parser = parser::Parser::new(tokens.to_vec());
+                let expr = parser.parse().map_err(|_| RuntimeError)?;
+                println!("{expr}");
+                Ok(())
             },
             Err(errors) => {
                 for err in errors {
                     self.error(err.line, &err.message);
                 }
+                Err(RuntimeError)
             },
         }
     }
@@ -87,3 +89,6 @@ impl Lox {
         self.had_error = true;
     }
 }
+
+#[derive(Debug)]
+struct RuntimeError;

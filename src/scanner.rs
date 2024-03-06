@@ -1,4 +1,4 @@
-use crate::{token::{Span, Token}, token_type::TokenType, LoxNumber};
+use crate::{token::{Span, Token}, token_type::TokenKind, LoxNumber};
 use std::collections::HashMap;
 use once_cell::sync::Lazy;
 
@@ -28,7 +28,7 @@ impl Scanner {
         }
 
         self.start_of_lexeme = self.current;
-        self.add_token(TokenType::Eof);
+        self.add_token(TokenKind::Eof);
 
         if self.errors.is_empty() {
             Ok(&self.tokens)
@@ -39,7 +39,7 @@ impl Scanner {
 
     fn scan_token(&mut self) {
         let c = self.advance();
-        use TokenType::*;
+        use TokenKind::*;
         match c {
             '(' => self.add_token(LeftParen),
             ')' => self.add_token(RightParen),
@@ -92,7 +92,7 @@ impl Scanner {
         self.advance();
 
         let value = self.source.as_str()[self.start_of_lexeme + 1 .. self.current - 1].to_string();
-        self.add_token(TokenType::String(value));
+        self.add_token(TokenKind::String(value));
     }
 
     fn literal_number(&mut self) {
@@ -113,7 +113,7 @@ impl Scanner {
         // [0-9]*(.[0-9]*) which is a valid floating number representation.
         let value: LoxNumber = value.parse().unwrap();
 
-        self.add_token(TokenType::Number(value));
+        self.add_token(TokenKind::Number(value));
     }
 
     fn identifier(&mut self) {
@@ -123,7 +123,7 @@ impl Scanner {
         if let Some(token) = KEYWORDS.get(value.as_str()) {
             self.add_token(token.clone());
         } else {
-            self.add_token(TokenType::Identifier(value));
+            self.add_token(TokenKind::Identifier(value));
         }
     }
 
@@ -152,7 +152,7 @@ impl Scanner {
         self.char_at(self.current + 1)
     }
     
-    fn add_token(&mut self, token: TokenType) {
+    fn add_token(&mut self, token: TokenKind) {
         let lexeme = &self.source.as_str()[self.start_of_lexeme .. self.current];
         let span = Span::new(self.start_of_lexeme, self.current - self.start_of_lexeme);
         self.tokens.push(Token::new(token, lexeme, span));
@@ -191,23 +191,23 @@ fn is_alpha(c: char) -> bool {
     matches!(c, 'a'..='z' | 'A'..='Z' | '_')
 }
 
-const KEYWORDS: Lazy<HashMap<&str, TokenType>> = Lazy::new(||
+const KEYWORDS: Lazy<HashMap<&str, TokenKind>> = Lazy::new(||
     HashMap::from([
-        ("and",    TokenType::And),
-        ("class",  TokenType::Class),
-        ("else",   TokenType::Else),
-        ("false",  TokenType::False),
-        ("for",    TokenType::For),
-        ("fn",    TokenType::Fn),
-        ("if",     TokenType::If),
-        ("nil",    TokenType::Nil),
-        ("or",     TokenType::Or),
-        ("print",  TokenType::Print),
-        ("return", TokenType::Return),
-        ("super",  TokenType::Super),
-        ("self",   TokenType::Self_),
-        ("true",   TokenType::True),
-        ("let",    TokenType::Let),
-        ("while",  TokenType::While),
+        ("and",    TokenKind::And),
+        ("class",  TokenKind::Class),
+        ("else",   TokenKind::Else),
+        ("false",  TokenKind::False),
+        ("for",    TokenKind::For),
+        ("fn",    TokenKind::Fn),
+        ("if",     TokenKind::If),
+        ("nil",    TokenKind::Nil),
+        ("or",     TokenKind::Or),
+        ("print",  TokenKind::Print),
+        ("return", TokenKind::Return),
+        ("super",  TokenKind::Super),
+        ("self",   TokenKind::Self_),
+        ("true",   TokenKind::True),
+        ("let",    TokenKind::Let),
+        ("while",  TokenKind::While),
     ])
 );

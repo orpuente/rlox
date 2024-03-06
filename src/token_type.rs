@@ -1,7 +1,7 @@
 use crate::LoxNumber;
 
-#[derive(Debug, Clone)]
-pub enum TokenType {
+#[derive(Debug, Clone, PartialEq)]
+pub enum TokenKind {
     // Single-character tokens
     LeftParen,
     RightParen,

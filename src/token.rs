@@ -1,15 +1,15 @@
-use crate::token_type::TokenType;
+use crate::token_type::TokenKind;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Token {
-    pub type_: TokenType,
+    pub kind: TokenKind,
     pub lexeme: String,
     pub span: Span,
 }
 
 impl Token {
-    pub fn new(type_: TokenType, lexeme: &str, span: Span) -> Self {
-        Self { type_, lexeme: lexeme.to_string(), span }
+    pub fn new(kind: TokenKind, lexeme: &str, span: Span) -> Self {
+        Self { kind, lexeme: lexeme.to_string(), span }
     }
 }
 
@@ -18,13 +18,13 @@ impl std::fmt::Display for Token {
         write!(
             f,
             "{:?} \"{}\"",
-            self.type_,
+            self.kind,
             self.lexeme,
         )
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct Span {
     offset: usize,
     length: usize,
