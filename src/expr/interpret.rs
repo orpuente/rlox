@@ -10,7 +10,7 @@ impl Expr {
             Expr::Binary(op, expr1, expr2) => op.eval(expr1.eval()?, expr2.eval()?),
             Expr::Grouping(expr) => expr.eval(),
             Expr::Literal(lit) =>   Ok(lit.into()),
-            Expr::Unary(op, expr) => op.eval(expr.eval()?)
+            Expr::Unary(op, expr) => op.eval(expr.eval()?),
         }
     }
 }
