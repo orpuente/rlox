@@ -76,7 +76,7 @@ impl Lox {
                 let expr = parser.parse().map_err(|_| RuntimeError)?;
                 match expr.eval() {
                     Ok(value) => println!("{value}"),
-                    Err(err) => println!("{err}"),
+                    Err(type_err) => println!("{}", style(type_err.to_string()).red()),
                 }
                 Ok(())
             }
