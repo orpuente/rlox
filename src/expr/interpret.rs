@@ -40,6 +40,7 @@ impl BinaryOp {
         let res: Value = match (self, x, y) {
             (BinaryOp::Minus, Number(x), Number(y))        => Number(x - y),
             (BinaryOp::Plus,  Number(x), Number(y))        => Number(x + y),
+            (BinaryOp::Plus,  String(x), String(y))        => String(x + &y),
             (BinaryOp::Div,   Number(x), Number(y))        => Number(x / y),
             (BinaryOp::Mul,   Number(x), Number(y))        => Number(x * y),
             (BinaryOp::NotEqual, Boolean(x), Boolean(y))   => Boolean(x != y),
