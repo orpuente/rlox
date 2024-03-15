@@ -89,8 +89,8 @@ impl Parser {
         use TokenKind::*;
 
         let expr = match &self.peek().kind {
-            False => Expr::Literal(Literal::False),
-            True => Expr::Literal(Literal::True),
+            False => Expr::Literal(Literal::Boolean(false)),
+            True => Expr::Literal(Literal::Boolean(true)),
             Nil => Expr::Literal(Literal::Nil),
             Number(n) => Expr::Literal(Literal::Number(n.to_owned())),
             String(s) => Expr::Literal(Literal::String(s.to_owned())),

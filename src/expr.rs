@@ -31,11 +31,10 @@ pub enum UnaryOp {
 }
 
 pub enum Literal {
+    Boolean(bool),
     Number(LoxNumber),
     String(String),
     Nil,
-    False,
-    True,
 }
 
 impl From<&TokenKind> for BinaryOp {

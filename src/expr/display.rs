@@ -57,11 +57,10 @@ impl Display for Literal {
             f,
             "{}",
             match self {
+                Literal::Boolean(value) => value.to_string(),
                 Literal::Number(value) => value.to_string(),
                 Literal::String(value) => value.to_owned(),
                 Literal::Nil => "nil".to_string(),
-                Literal::False => "false".to_string(),
-                Literal::True => "true".to_string(),
             }
         )
     }

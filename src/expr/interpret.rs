@@ -68,11 +68,10 @@ impl BinaryOp {
 impl From<Literal> for Value {
     fn from(value: Literal) -> Self {
         match value {
+            Literal::Boolean(b) => Self::Boolean(b),
             Literal::Number(n) => Self::Number(n),
             Literal::String(s) => Self::String(s),
             Literal::Nil => Self::Nil,
-            Literal::False => Self::Boolean(false),
-            Literal::True => Self::Boolean(true),
         }
     }
 }
