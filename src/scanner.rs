@@ -108,7 +108,7 @@ impl Scanner {
     }
 
     fn literal_string(&mut self) {
-        while self.peek() != '"' && self.eof() {
+        while self.peek() != '"' && !self.eof() {
             if self.peek() == '\n' {
                 self.line += 1
             }
