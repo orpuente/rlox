@@ -15,14 +15,13 @@ pub struct Lox {
 
 impl Lox {
     pub fn entry_point(&mut self, args: &[String]) {
-        if args.len() > 2 {
-            println!("Usage: rlox [script]");
-            exit(64);
-        }
-        if args.len() == 2 {
-            self.run_file(&args[1]);
-        } else {
-            self.run_prompt();
+        match args.len() {
+            1 => self.run_prompt(),
+            2 => self.run_file(&args[1]),
+            _ => {
+                println!("Usage: rlox [script]");
+                exit(64);
+            }
         }
     }
 
@@ -30,7 +29,7 @@ impl Lox {
         let contents = fs::read_to_string(path).unwrap();
         self.run(&contents).unwrap();
         if self.had_error {
-            exit(64)
+            exit(64);
         }
     }
 
@@ -41,6 +40,7 @@ impl Lox {
         for line in stdin.lock().lines() {
             match line {
                 Ok(ref cmd) if cmd == "clear" => self.clear(),
+                Ok(ref cmd) if cmd == "exit" => exit(0),
                 Ok(ref source) => {
                     let _ = self.run(source);
                     self.had_error = false;
