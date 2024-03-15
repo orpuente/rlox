@@ -7,4 +7,3 @@ fn main() {
     let mut lox = Lox::default();
     lox.entry_point(&args);
 }
-

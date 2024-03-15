@@ -9,18 +9,17 @@ pub struct Token {
 
 impl Token {
     pub fn new(kind: TokenKind, lexeme: &str, span: Span) -> Self {
-        Self { kind, lexeme: lexeme.to_string(), span }
+        Self {
+            kind,
+            lexeme: lexeme.to_string(),
+            span,
+        }
     }
 }
 
 impl std::fmt::Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{:?} \"{}\"",
-            self.kind,
-            self.lexeme,
-        )
+        write!(f, "{:?} \"{}\"", self.kind, self.lexeme,)
     }
 }
 

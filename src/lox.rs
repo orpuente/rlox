@@ -1,4 +1,8 @@
-use std::{fs, io::{self, BufRead, Write}, process::exit};
+use std::{
+    fs,
+    io::{self, BufRead, Write},
+    process::exit,
+};
 
 use console::{style, Term};
 
@@ -6,7 +10,7 @@ use crate::{parser, scanner::Scanner};
 
 #[derive(Default)]
 pub struct Lox {
-    had_error: bool
+    had_error: bool,
 }
 
 impl Lox {
@@ -25,9 +29,11 @@ impl Lox {
     fn run_file(&mut self, path: &str) {
         let contents = fs::read_to_string(path).unwrap();
         self.run(&contents).unwrap();
-        if self.had_error { exit(64) }
+        if self.had_error {
+            exit(64)
+        }
     }
-    
+
     fn run_prompt(&mut self) {
         self.set_term_title("Lox");
         let stdin = io::stdin();
@@ -60,30 +66,33 @@ impl Lox {
         let term = Term::stdout();
         term.set_title(title)
     }
-    
+
     fn run(&mut self, source: &str) -> Result<(), RuntimeError> {
         let mut scanner = Scanner::new(source);
-        
+
         match scanner.scan_tokens() {
             Ok(tokens) => {
                 let mut parser = parser::Parser::new(tokens.to_vec());
                 let expr = parser.parse().map_err(|_| RuntimeError)?;
-                println!("{expr}");
+                match expr.eval() {
+                    Ok(value) => println!("{value}"),
+                    Err(err) => println!("{err}"),
+                }
                 Ok(())
-            },
+            }
             Err(errors) => {
                 for err in errors {
                     self.error(err.line, &err.message);
                 }
                 Err(RuntimeError)
-            },
+            }
         }
     }
-    
+
     fn error(&mut self, line: usize, message: &str) {
         self.report(line, "", message);
     }
-    
+
     fn report(&mut self, line: usize, loc: &str, message: &str) {
         eprintln!("[line {line}] Error{loc}: {message}");
         self.had_error = true;

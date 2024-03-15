@@ -16,10 +16,14 @@ pub enum TokenKind {
     Star,
 
     // One or two character tokens
-    Bang, BangEqual,
-    Equal, EqualEqual,
-    Greater, GreaterEqual,
-    Less, LessEqual,
+    Bang,
+    BangEqual,
+    Equal,
+    EqualEqual,
+    Greater,
+    GreaterEqual,
+    Less,
+    LessEqual,
 
     // Literals
     Identifier(String),
@@ -27,8 +31,22 @@ pub enum TokenKind {
     Number(LoxNumber),
 
     // Keywords,
-    And, Class, Else, False, Fn, For, If, Let, Nil,
-    Or, Print, Return, Self_, Super, True, While,
+    And,
+    Class,
+    Else,
+    False,
+    Fn,
+    For,
+    If,
+    Let,
+    Nil,
+    Or,
+    Print,
+    Return,
+    Self_,
+    Super,
+    True,
+    While,
 
     // EOF
     Eof,

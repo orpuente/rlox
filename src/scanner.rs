@@ -1,6 +1,10 @@
-use crate::{token::{Span, Token}, token_type::TokenKind, LoxNumber};
-use std::collections::HashMap;
+use crate::{
+    token::{Span, Token},
+    token_type::TokenKind,
+    LoxNumber,
+};
 use once_cell::sync::Lazy;
+use std::collections::HashMap;
 
 #[derive(Default)]
 pub struct Scanner {
@@ -51,14 +55,40 @@ impl Scanner {
             '+' => self.add_token(Plus),
             ';' => self.add_token(Semicolon),
             '*' => self.add_token(Star),
-            '!' => if self.match_advance('=') { self.add_token(BangEqual) } else { self. add_token(Bang)},
-            '=' => if self.match_advance('=') { self.add_token(EqualEqual) } else { self. add_token(Equal)},
-            '<' => if self.match_advance('=') { self.add_token(LessEqual) } else { self. add_token(Less)},
-            '>' => if self.match_advance('=') { self.add_token(GreaterEqual) } else { self. add_token(Greater)},
+            '!' => {
+                if self.match_advance('=') {
+                    self.add_token(BangEqual)
+                } else {
+                    self.add_token(Bang)
+                }
+            }
+            '=' => {
+                if self.match_advance('=') {
+                    self.add_token(EqualEqual)
+                } else {
+                    self.add_token(Equal)
+                }
+            }
+            '<' => {
+                if self.match_advance('=') {
+                    self.add_token(LessEqual)
+                } else {
+                    self.add_token(Less)
+                }
+            }
+            '>' => {
+                if self.match_advance('=') {
+                    self.add_token(GreaterEqual)
+                } else {
+                    self.add_token(Greater)
+                }
+            }
             '/' => {
                 if self.match_advance('/') {
                     // A comment goes until the end of the line.
-                    while self.peek() != '\n' && !self.eof() { self.advance(); }
+                    while self.peek() != '\n' && !self.eof() {
+                        self.advance();
+                    }
                 } else {
                     self.add_token(Slash);
                 }
@@ -79,7 +109,9 @@ impl Scanner {
 
     fn literal_string(&mut self) {
         while self.peek() != '"' && self.eof() {
-            if self.peek() == '\n' { self.line += 1 }
+            if self.peek() == '\n' {
+                self.line += 1
+            }
             self.advance();
         }
 
@@ -91,12 +123,14 @@ impl Scanner {
         // Consume the closing '"'.
         self.advance();
 
-        let value = self.source.as_str()[self.start_of_lexeme + 1 .. self.current - 1].to_string();
+        let value = self.source.as_str()[self.start_of_lexeme + 1..self.current - 1].to_string();
         self.add_token(TokenKind::String(value));
     }
 
     fn literal_number(&mut self) {
-        while self.peek().is_digit(10) { self.advance(); }
+        while self.peek().is_digit(10) {
+            self.advance();
+        }
 
         // Look for a fractional part.
         if self.peek() == '.' && self.peek_next().is_digit(10) {
@@ -104,10 +138,12 @@ impl Scanner {
             self.advance();
 
             // Consume the decimal part.
-            while self.peek().is_digit(10) { self.advance(); }
+            while self.peek().is_digit(10) {
+                self.advance();
+            }
         }
 
-        let value = self.source.as_str()[self.start_of_lexeme .. self.current].to_string();
+        let value = self.source.as_str()[self.start_of_lexeme..self.current].to_string();
 
         // SAFETY: If we got here is because the lexeme is of the form
         // [0-9]*(.[0-9]*) which is a valid floating number representation.
@@ -117,9 +153,11 @@ impl Scanner {
     }
 
     fn identifier(&mut self) {
-        while is_alpha(self.peek()) { self.advance(); }
+        while is_alpha(self.peek()) {
+            self.advance();
+        }
 
-        let value = self.source.as_str()[self.start_of_lexeme .. self.current].to_string();
+        let value = self.source.as_str()[self.start_of_lexeme..self.current].to_string();
         if let Some(token) = KEYWORDS.get(value.as_str()) {
             self.add_token(token.clone());
         } else {
@@ -132,7 +170,7 @@ impl Scanner {
         self.current += 1;
         c as char
     }
-    
+
     /// Returns `true` if the next character matches the `expected` character.
     /// Only advances the scanner if the match succeeds.
     fn match_advance(&mut self, expected: char) -> bool {
@@ -151,9 +189,9 @@ impl Scanner {
     fn peek_next(&self) -> char {
         self.char_at(self.current + 1)
     }
-    
+
     fn add_token(&mut self, token: TokenKind) {
-        let lexeme = &self.source.as_str()[self.start_of_lexeme .. self.current];
+        let lexeme = &self.source.as_str()[self.start_of_lexeme..self.current];
         let span = Span::new(self.start_of_lexeme, self.current - self.start_of_lexeme);
         self.tokens.push(Token::new(token, lexeme, span));
     }
@@ -191,23 +229,23 @@ fn is_alpha(c: char) -> bool {
     matches!(c, 'a'..='z' | 'A'..='Z' | '_')
 }
 
-const KEYWORDS: Lazy<HashMap<&str, TokenKind>> = Lazy::new(||
+const KEYWORDS: Lazy<HashMap<&str, TokenKind>> = Lazy::new(|| {
     HashMap::from([
-        ("and",    TokenKind::And),
-        ("class",  TokenKind::Class),
-        ("else",   TokenKind::Else),
-        ("false",  TokenKind::False),
-        ("for",    TokenKind::For),
-        ("fn",    TokenKind::Fn),
-        ("if",     TokenKind::If),
-        ("nil",    TokenKind::Nil),
-        ("or",     TokenKind::Or),
-        ("print",  TokenKind::Print),
+        ("and", TokenKind::And),
+        ("class", TokenKind::Class),
+        ("else", TokenKind::Else),
+        ("false", TokenKind::False),
+        ("for", TokenKind::For),
+        ("fn", TokenKind::Fn),
+        ("if", TokenKind::If),
+        ("nil", TokenKind::Nil),
+        ("or", TokenKind::Or),
+        ("print", TokenKind::Print),
         ("return", TokenKind::Return),
-        ("super",  TokenKind::Super),
-        ("self",   TokenKind::Self_),
-        ("true",   TokenKind::True),
-        ("let",    TokenKind::Let),
-        ("while",  TokenKind::While),
+        ("super", TokenKind::Super),
+        ("self", TokenKind::Self_),
+        ("true", TokenKind::True),
+        ("let", TokenKind::Let),
+        ("while", TokenKind::While),
     ])
-);
+});

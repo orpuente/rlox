@@ -1,4 +1,8 @@
-use crate::{expr::{Expr, Literal}, token::Token, token_type::TokenKind};
+use crate::{
+    expr::{Expr, Literal},
+    token::Token,
+    token_type::TokenKind,
+};
 
 pub struct Parser {
     tokens: Vec<Token>,
@@ -25,7 +29,7 @@ impl Parser {
         while self.match_(&[BangEqual, EqualEqual]) {
             let operator = (&self.previous().kind).into();
             let right = self.comparison()?;
-            expr = Expr::Binary(expr.into(), operator, right.into());
+            expr = Expr::Binary(operator, expr.into(), right.into());
         }
 
         Ok(expr)
@@ -33,12 +37,12 @@ impl Parser {
 
     fn comparison(&mut self) -> Result<Expr, ParserError> {
         let mut expr = self.term()?;
-        
+
         use TokenKind::*;
         while self.match_(&[Greater, GreaterEqual, Less, LessEqual]) {
             let operator = (&self.previous().kind).into();
             let right = self.term()?;
-            expr = Expr::Binary(expr.into(), operator, right.into());
+            expr = Expr::Binary(operator, expr.into(), right.into());
         }
 
         Ok(expr)
@@ -51,7 +55,7 @@ impl Parser {
         while self.match_(&[Minus, Plus]) {
             let operator = (&self.previous().kind).into();
             let right = self.factor()?;
-            expr = Expr::Binary(expr.into(), operator, right.into());
+            expr = Expr::Binary(operator, expr.into(), right.into());
         }
 
         Ok(expr)
@@ -64,7 +68,7 @@ impl Parser {
         while self.match_(&[Slash, Star]) {
             let operator = (&self.previous().kind).into();
             let right = self.unary()?;
-            expr = Expr::Binary(expr.into(), operator, right.into());
+            expr = Expr::Binary(operator, expr.into(), right.into());
         }
 
         Ok(expr)
@@ -78,16 +82,16 @@ impl Parser {
             return Ok(Expr::Unary(operator, right.into()));
         }
 
-        self.primary() 
+        self.primary()
     }
 
     fn primary(&mut self) -> Result<Expr, ParserError> {
         use TokenKind::*;
 
         let expr = match &self.peek().kind {
-            False     => Expr::Literal(Literal::False),
-            True      => Expr::Literal(Literal::True),
-            Nil       => Expr::Literal(Literal::Nil),
+            False => Expr::Literal(Literal::False),
+            True => Expr::Literal(Literal::True),
+            Nil => Expr::Literal(Literal::Nil),
             Number(n) => Expr::Literal(Literal::Number(n.to_owned())),
             String(s) => Expr::Literal(Literal::String(s.to_owned())),
             LeftParen => {
@@ -96,8 +100,10 @@ impl Parser {
                 Expr::Grouping(expr.into())
             }
             _ => {
-                return self.error(self.peek(), "Expect expression.").map(|_| unreachable!());
-            },
+                return self
+                    .error(self.peek(), "Expect expression.")
+                    .map(|_| unreachable!());
+            }
         };
 
         self.current += 1;
@@ -116,9 +122,12 @@ impl Parser {
     }
 
     fn consume(&mut self, until: TokenKind, error_message: &str) -> Result<&Token, ParserError> {
-        if self.check(&until) { return Ok(self.advance()); }
+        if self.check(&until) {
+            return Ok(self.advance());
+        }
 
-        self.error(self.peek(), error_message).map(|_| unreachable!())
+        self.error(self.peek(), error_message)
+            .map(|_| unreachable!())
     }
 
     fn check(&self, token_kind: &TokenKind) -> bool {
@@ -159,13 +168,15 @@ impl Parser {
 
         use TokenKind::*;
         while !self.eof() {
-            if matches!(self.previous().kind, Semicolon) { return; }
-            
+            if matches!(self.previous().kind, Semicolon) {
+                return;
+            }
+
             match self.peek().kind {
                 Class | Fn | Let | For | If | While | Print | Return => return,
-                _ => ()
+                _ => (),
             }
-            
+
             self.advance();
         }
     }
@@ -175,4 +186,4 @@ impl Parser {
 pub struct ParserError;
 
 #[allow(dead_code)]
-enum Void{}
+enum Void {}
