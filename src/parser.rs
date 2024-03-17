@@ -33,6 +33,8 @@ impl Parser {
             self.print_statement()
         } else if self.match_(&[TokenKind::Let]) {
             self.binding_statement()
+        } else if self.match_(&[TokenKind::LeftBrace]) {
+            self.block_statement()
         } else {
             self.expression_statement()
         }
@@ -67,6 +69,17 @@ impl Parser {
         let expr = self.expression()?;
         self.consume(TokenKind::Semicolon, "Expected ';' after expression.")?;
         Ok(Statement::Expr(expr))
+    }
+
+    fn block_statement(&mut self) -> Result<Statement, ParserError> {
+        let mut stmts = Vec::new();
+
+        while !self.check(&TokenKind::RightBrace) && !self.eof() {
+            stmts.push(self.statement()?);
+        }
+
+        self.consume(TokenKind::RightBrace, "Expected '}' after block.")?;
+        Ok(Statement::Block(stmts))
     }
 
     fn expression(&mut self) -> Result<Expr, ParserError> {
@@ -138,7 +151,6 @@ impl Parser {
 
     fn primary(&mut self) -> Result<Expr, ParserError> {
         use TokenKind::*;
-
         let expr = match &self.peek().kind {
             False => Expr::Literal(Literal::Boolean(false)),
             True => Expr::Literal(Literal::Boolean(true)),
@@ -169,7 +181,6 @@ impl Parser {
                 return true;
             }
         }
-
         false
     }
 
@@ -220,15 +231,11 @@ impl Parser {
 
         use TokenKind::*;
         while !self.eof() {
-            if matches!(self.previous().kind, Semicolon) {
-                return;
-            }
-
+            if matches!(self.previous().kind, Semicolon) { return; }
             match self.peek().kind {
                 Class | Fn | Let | For | If | While | Print | Return => return,
                 _ => (),
             }
-
             self.advance();
         }
     }
