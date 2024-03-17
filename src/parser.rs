@@ -1,7 +1,5 @@
 use crate::{
-    expr::{Expr, Literal},
-    token::Token,
-    token_type::TokenKind,
+    error::ParserError, expr::{Expr, Literal}, statement::Statement, token::Token, token_kind::TokenKind
 };
 
 pub struct Parser {
@@ -14,8 +12,61 @@ impl Parser {
         Self { tokens, current: 0 }
     }
 
-    pub fn parse(&mut self) -> Result<Expr, ParserError> {
-        self.expression()
+    pub fn parse(&mut self) -> Result<Vec<Statement>, ParserError> {
+        let mut statements = Vec::new();
+        let mut error = false;
+
+        while !self.eof() {
+            if let Ok(stmt) = self.statement() {
+                statements.push(stmt);
+            } else {
+                self.synchronize();
+                error = true;
+            }
+        }
+
+        if error { Err(ParserError) } else { Ok(statements) }
+    }
+
+    fn statement(&mut self) -> Result<Statement, ParserError> {
+        if self.match_(&[TokenKind::Print]) {            
+            self.print_statement()
+        } else if self.match_(&[TokenKind::Let]) {
+            self.binding_statement()
+        } else {
+            self.expression_statement()
+        }
+    }
+
+    fn print_statement(&mut self) -> Result<Statement, ParserError> {
+        let expr = self.expression()?;
+        self.consume(TokenKind::Semicolon, "Expected ';' after expression.")?;
+        Ok(Statement::Print(expr))
+    }
+
+    fn binding_statement(&mut self) -> Result<Statement, ParserError> {
+        // Can't mut borrow twice, so we clone the value.
+        let name = self
+            .consume(TokenKind::Identifier("".into()), "Expected variable name.")
+            .cloned();
+
+        if self.match_(&[TokenKind::Equal]) {
+            let value = self.expression();
+            // We want to consume the semicolon before emiting any errors to match the book's logic.
+            self.consume(TokenKind::Semicolon, "Expected ';' after let binding.")?;
+            let name = name?;
+            let value = value?;
+            Ok(Statement::Let(name.lexeme, value))
+        } else {
+            self.consume(TokenKind::Semicolon, "Expected ';' after let binding.")?;
+            Err(ParserError)
+        }
+    }
+
+    fn expression_statement(&mut self) -> Result<Statement, ParserError> {
+        let expr = self.expression()?;
+        self.consume(TokenKind::Semicolon, "Expected ';' after expression.")?;
+        Ok(Statement::Expr(expr))
     }
 
     fn expression(&mut self) -> Result<Expr, ParserError> {
@@ -94,14 +145,15 @@ impl Parser {
             Nil => Expr::Literal(Literal::Nil),
             Number(n) => Expr::Literal(Literal::Number(n.to_owned())),
             String(s) => Expr::Literal(Literal::String(s.to_owned())),
+            Identifier(n) => Expr::Variable(n.to_owned()),
             LeftParen => {
                 let expr = self.expression()?;
-                self.consume(RightParen, "Expect ')' after expression.")?;
+                self.consume(RightParen, "Expected ')' after expression.")?;
                 Expr::Grouping(expr.into())
             }
             _ => {
                 return self
-                    .error(self.peek(), "Expect expression.")
+                    .error(self.peek(), "Expected expression.")
                     .map(|_| unreachable!());
             }
         };
@@ -134,7 +186,7 @@ impl Parser {
         if self.eof() {
             false
         } else {
-            self.peek().kind == *token_kind
+            self.peek().kind.same_kind(token_kind)
         }
     }
 
@@ -163,7 +215,7 @@ impl Parser {
         Err(ParserError)
     }
 
-    fn _synchronize(&mut self) {
+    fn synchronize(&mut self) {
         self.advance();
 
         use TokenKind::*;
@@ -181,9 +233,6 @@ impl Parser {
         }
     }
 }
-
-#[derive(Debug)]
-pub struct ParserError;
 
 #[allow(dead_code)]
 enum Void {}

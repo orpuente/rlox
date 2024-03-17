@@ -1,4 +1,4 @@
-use crate::LoxNumber;
+use crate::{Identifier, LoxNumber};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum TokenKind {
@@ -26,7 +26,7 @@ pub enum TokenKind {
     LessEqual,
 
     // Literals
-    Identifier(String),
+    Identifier(Identifier),
     String(String),
     Number(LoxNumber),
 
@@ -50,4 +50,13 @@ pub enum TokenKind {
 
     // EOF
     Eof,
+}
+
+impl TokenKind {
+    pub fn same_kind(&self, rhs: &Self) -> bool {
+        match (self, rhs) {
+            (TokenKind::Identifier(_), TokenKind::Identifier(_)) => true,
+            _ => self == rhs,
+        }
+    }
 }

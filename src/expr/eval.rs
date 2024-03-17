@@ -1,20 +1,24 @@
 use std::fmt::Display;
 
-use crate::LoxNumber;
+use crate::{environment::Environment, error::{RuntimeError, TypeError}, LoxNumber};
 
 use super::{Expr, Literal, UnaryOp, BinaryOp};
 
 impl Expr {
-    pub fn eval(self) -> Result<Value, TypeError> {
+    pub fn eval(self, env: &Environment) -> Result<Value, RuntimeError> {
         match self {
-            Expr::Binary(op, expr1, expr2) => op.eval(expr1.eval()?, expr2.eval()?),
-            Expr::Grouping(expr) => expr.eval(),
+            Expr::Binary(op, expr1, expr2) => Ok(op.eval(expr1.eval(env)?, expr2.eval(env)?)?),
+            Expr::Grouping(expr) => expr.eval(env),
             Expr::Literal(lit) =>   Ok(lit.into()),
-            Expr::Unary(op, expr) => op.eval(expr.eval()?),
+            Expr::Unary(op, expr) => Ok(op.eval(expr.eval(env)?)?),
+
+            // There is an oportunity for optimization here. Distinguish between OwenedValue, RefValue, and MutRefValue.
+            Expr::Variable(name) => Ok(env.get(name)?.clone())
         }
     }
 }
 
+#[derive(Clone)]
 pub enum Value {
     Boolean(bool),
     Number(LoxNumber),
@@ -88,13 +92,5 @@ impl Display for Value {
                 Value::Nil => "nil".to_string(),
             }
         )
-    }
-}
-
-pub struct TypeError;
-
-impl Display for TypeError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "TypeError")
     }
 }

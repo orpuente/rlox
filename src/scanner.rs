@@ -1,7 +1,5 @@
 use crate::{
-    token::{Span, Token},
-    token_type::TokenKind,
-    LoxNumber,
+    error::ScannerError, token::{Span, Token}, token_kind::TokenKind, LoxNumber
 };
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
@@ -25,7 +23,7 @@ impl Scanner {
         }
     }
 
-    pub fn scan_tokens(&mut self) -> Result<&[Token], &[ScannerError]> {
+    pub fn scan_tokens(mut self) -> Result<Vec<Token>, Vec<ScannerError>> {
         while !self.eof() {
             self.start_of_lexeme = self.current;
             self.scan_token();
@@ -35,9 +33,9 @@ impl Scanner {
         self.add_token(TokenKind::Eof);
 
         if self.errors.is_empty() {
-            Ok(&self.tokens)
+            Ok(self.tokens)
         } else {
-            Err(&self.errors)
+            Err(self.errors)
         }
     }
 
@@ -218,11 +216,6 @@ impl Scanner {
             message: message.to_string(),
         })
     }
-}
-
-pub struct ScannerError {
-    pub line: usize,
-    pub message: String,
 }
 
 fn is_alpha(c: char) -> bool {

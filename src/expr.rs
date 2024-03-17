@@ -1,13 +1,14 @@
 pub mod display;
-pub mod interpret;
+pub mod eval;
 
-use crate::{token_type::TokenKind, LoxNumber};
+use crate::{token_kind::TokenKind, Identifier, LoxNumber};
 
 pub enum Expr {
     Binary(BinaryOp, Box<Expr>, Box<Expr>),
     Grouping(Box<Expr>),
     Literal(Literal),
     Unary(UnaryOp, Box<Expr>),
+    Variable(Identifier),
 }
 
 pub enum BinaryOp {

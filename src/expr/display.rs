@@ -11,6 +11,7 @@ impl Display for Expr {
             Expr::Grouping(expr) => write!(f, "(group {expr})"),
             Expr::Literal(lit) => write!(f, "{lit}"),
             Expr::Unary(op, expr) => write!(f, "({op} {expr})"),
+            Expr::Variable(name) => write!(f, "({name})"),
         }
     }
 }

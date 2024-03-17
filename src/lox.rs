@@ -6,12 +6,10 @@ use std::{
 
 use console::{style, Term};
 
-use crate::{parser, scanner::Scanner};
+use crate::{environment::Environment, error::LoxError, parser, scanner::Scanner};
 
 #[derive(Default)]
-pub struct Lox {
-    had_error: bool,
-}
+pub struct Lox;
 
 impl Lox {
     pub fn entry_point(&mut self, args: &[String]) {
@@ -26,25 +24,31 @@ impl Lox {
     }
 
     fn run_file(&mut self, path: &str) {
+        let mut env = Environment::default();
         let contents = fs::read_to_string(path).unwrap();
-        self.run(&contents).unwrap();
-        if self.had_error {
-            exit(64);
+        match self.run(&contents, &mut env) {
+            Ok(_) => (),
+            Err(_) => exit(64),
         }
     }
 
     fn run_prompt(&mut self) {
+        let mut env = Environment::default();
+
         self.set_term_title("Lox");
         let stdin = io::stdin();
         self.prompt_symbol();
+
         for line in stdin.lock().lines() {
             match line {
                 Ok(ref cmd) if cmd == "clear" => self.clear(),
                 Ok(ref cmd) if cmd == "exit" => exit(0),
                 Ok(ref source) => {
-                    let _ = self.run(source);
-                    self.had_error = false;
-                }
+                    match self.run(source, &mut env) {
+                        Ok(_) => (),
+                        Err(err) => println!("{err}"),
+                    }
+                },
                 _ => break,
             }
             self.prompt_symbol();
@@ -67,37 +71,29 @@ impl Lox {
         term.set_title(title)
     }
 
-    fn run(&mut self, source: &str) -> Result<(), RuntimeError> {
-        let mut scanner = Scanner::new(source);
+    fn run(&mut self, source: &str, env: &mut Environment) -> Result<(), LoxError> {
+        let scanner = Scanner::new(source);
 
         match scanner.scan_tokens() {
             Ok(tokens) => {
                 let mut parser = parser::Parser::new(tokens.to_vec());
-                let expr = parser.parse().map_err(|_| RuntimeError)?;
-                match expr.eval() {
-                    Ok(value) => println!("{value}"),
-                    Err(type_err) => println!("{}", style(type_err.to_string()).red()),
+                let program = parser.parse()?;
+                for stmt in program {
+                    match stmt.eval(env) {
+                        Ok(_) => (),
+                        Err(type_err) => println!("ERROR: {}", style(type_err.to_string()).red()),
+                    }
                 }
+                
                 Ok(())
             }
             Err(errors) => {
-                for err in errors {
-                    self.error(err.line, &err.message);
+                for err in &errors {
+                    println!("{err}");
                 }
-                Err(RuntimeError)
+
+                Err(LoxError::ScannerError(errors))
             }
         }
     }
-
-    fn error(&mut self, line: usize, message: &str) {
-        self.report(line, "", message);
-    }
-
-    fn report(&mut self, line: usize, loc: &str, message: &str) {
-        eprintln!("[line {line}] Error{loc}: {message}");
-        self.had_error = true;
-    }
 }
-
-#[derive(Debug)]
-struct RuntimeError;
